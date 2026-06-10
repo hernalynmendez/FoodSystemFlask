@@ -1,0 +1,12 @@
+<div class="category-tabs mt-4">
+    <a href="{{ url_for('menu', search=search_query) if search_query else url_for('menu') }}"
+       class="category-tab {% if not active_category %}active{% endif %}">
+        <i class="fas fa-th"></i> All Items
+    </a>
+    {% for cat in categories %}
+    <a href="{{ url_for('menu', category=cat, search=search_query) if search_query else url_for('menu', category=cat) }}"
+       class="category-tab {% if active_category == cat %}active{% endif %}">
+        {{ cat }}
+    </a>
+    {% endfor %}
+</div>

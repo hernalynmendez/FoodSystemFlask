@@ -1,0 +1,3 @@
+<?xml version='1.0' encoding='utf-8'?>
+<orders>
+<order><id>1</id><user_id>2</user_id><total>199.0</total><status>cancelled</status><date>2026-05-31 21:22:33</date><items><item><id>1</id><name>Cheese Pizza</name><price>199.0</price><quantity>1</quantity></item></items></order></orders>

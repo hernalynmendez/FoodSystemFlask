@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}My Orders - S&amp;R New York Style Pizza{% endblock %}
+
+{% block content %}
+<div style="background-image: linear-gradient(135deg, rgba(227, 47, 47, 0.08) 0%, rgba(0, 0, 0, 0.75) 50%, rgba(0, 0, 0, 0.85) 100%), linear-gradient(to right, rgba(255, 87, 69, 0.05), transparent 50%, rgba(227, 47, 47, 0.05)), url('/static/uploads/profiles/order.jpg'); background-size: cover; background-position: center; background-attachment: fixed; width: 100vw; height: auto; margin-left: calc(-50vw + 50%); padding-top: 4rem; padding-bottom: 4rem; display: flex; flex-direction: column; justify-content: flex-start; min-height: 100vh;">
+    <div class="container" style="flex: 1;">
+        <h2 class="section-title" style="color: white; font-size: 3rem; margin-bottom: 2rem;">My Orders</h2>
+        
+        {% if orders %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Date</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td>#{{ order.get('id') }}</td>
+                        <td>{{ order.get('date', 'N/A') }}</td>
+                        <td>₱{{ "%.2f" | format(order.get('total', '0')|float) }}</td>
+                        <td>
+                            {% if order.get('status') == 'pending' %}
+                                <span class="badge bg-warning">{{ order.get('status') }}</span>
+                            {% elif order.get('status') == 'completed' %}
+                                <span class="badge bg-success">{{ order.get('status') }}</span>
+                            {% elif order.get('status') == 'cancelled' %}
+                                <span class="badge bg-danger">{{ order.get('status') }}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ order.get('status') }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if order.get('status') == 'pending' %}
+                            <form method="POST" action="/orders/cancel/{{ order.get('id') }}" style="display:inline;" onsubmit="return confirm('Cancel this order?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Cancel Order</button>
+                            </form>
+                            {% else %}
+                            <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info" role="alert">
+            <p class="mb-0">Your order history will appear here. Place an order from the menu to get started!</p>
+        </div>
+        {% endif %}
+
+        <div class="row mt-4">
+            <div class="col-12">
+                <a href="/menu" class="btn btn-primary me-2">Browse Menu</a>
+                <a href="/dashboard" class="btn btn-outline-light">Back to Dashboard</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

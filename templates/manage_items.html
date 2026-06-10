@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Items - S&amp;R New York Style Pizza{% endblock %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col-md-8">
+        <h2 class="section-title">Manage Food Items</h2>
+        <p class="section-subtitle mb-0">Add, edit, or remove menu items</p>
+    </div>
+    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+        <a href="/admin/items/add" class="btn btn-danger">+ Add New Food Item</a>
+    </div>
+</div>
+
+{% if items %}
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>Image</th>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Price</th>
+                <th>Vegetarian</th>
+                <th>Stock</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>
+                    <img src="{{ item.get('image') | food_image }}" class="table-item-img" alt="{{ item.get('name') }}">
+                </td>
+                <td><strong>{{ item.get('name') }}</strong></td>
+                <td>{{ item.get('category','-') }}</td>
+                <td>₱{{ "%.2f" | format(item.get('price', '0')|float) }}</td>
+                <td>{% if item.get('is_vegetarian')=='true' %}✔{% else %}✖{% endif %}</td>
+                <td>{{ item.get('stock','0') }}</td>
+                <td><span class="badge bg-{{ 'success' if item.get('availability','available')=='available' else 'secondary' }}">{{ item.get('availability','available') }}</span></td>
+                <td>
+                    <a href="/admin/items/edit/{{ item.get('id') }}" class="btn btn-sm btn-warning">Edit</a>
+                    <form method="POST" action="/admin/items/delete/{{ item.get('id') }}" style="display:inline;" onsubmit="return confirm('Are you sure?');">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-info">No food items found. <a href="/admin/items/add">Add the first item</a></div>
+{% endif %}
+
+<div class="mt-4">
+    <a href="/admin-dashboard" class="btn btn-secondary">Back to Dashboard</a>
+</div>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Login - S&amp;R New York Style Pizza{% endblock %}
+
+{% block content_wrapper_class %}auth-page-bg{% endblock %}
+
+{% block content %}
+<div class="auth-section">
+    <div class="row justify-content-center w-100">
+        <div class="col-md-5">
+            <div class="card">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                    </div>
+                    <h3 class="card-title mb-2 text-center section-title">Login</h3>
+                    <p class="text-center section-subtitle mb-3">Welcome back to S&amp;R Pizza</p>
+
+                    {% if error %}
+                    <div class="alert alert-danger text-center" role="alert" aria-live="assertive">
+                        <strong>{{ error }}</strong>
+                    </div>
+                    {% endif %}
+
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <input type="text" class="form-control {% if error %}is-invalid{% endif %}" id="username" name="username" placeholder="Enter your username" value="{{ username or '' }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control {% if error %}is-invalid{% endif %}" id="password" name="password" placeholder="Enter your password" required>
+                            {% if error %}
+                            <div class="invalid-feedback">Please check your username and password.</div>
+                            {% endif %}
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 mb-3">Login</button>
+                    </form>
+                    <hr>
+                    <p class="text-center mb-2">Don't have an account? <a href="/register">Register here</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

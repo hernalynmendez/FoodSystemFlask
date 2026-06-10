@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Menu - S&amp;R New York Style Pizza{% endblock %}
+
+{% block flash_messages %}{% endblock %}
+
+{% block content_wrapper_class %}container-fluid p-0{% endblock %}
+
+{% block content %}
+<div class="menu-hero" style="background-image: url('/static/uploads/profiles/lr2.jpg'); background-size: cover; background-position: center; background-attachment: fixed;">
+    <div class="container">
+        <div style="background: rgba(0, 0, 0, 0.65); border: 2px solid rgba(227, 47, 47, 0.5); border-radius: 8px; padding: 3rem; text-align: center;">
+            <h1 class="menu-hero-title">Our Premium Menu</h1>
+            <p class="menu-hero-subtitle">Handcrafted New York-style pizzas &amp; more</p>
+        </div>
+    </div>
+</div>
+
+<div class="menu-search-section">
+    <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'danger' if category == 'danger' else 'success' if category == 'success' else 'warning' if category == 'warning' else 'info' }} alert-dismissible fade show mb-4" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        <div class="row g-3 align-items-end">
+            <div class="col-md-6">
+                <form method="GET" class="search-form">
+                    {% if active_category %}
+                    <input type="hidden" name="category" value="{{ active_category }}">
+                    {% endif %}
+                    <div class="input-group input-group-lg menu-search-group">
+                        <span class="input-group-text search-icon">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input class="form-control search-input" type="search" name="search"
+                               placeholder="Search pizzas, pasta, wings..."
+                               value="{{ search_query }}">
+                        <button class="btn btn-search" type="submit">Find</button>
+                    </div>
+                </form>
+            </div>
+            <div class="col-md-6">
+                <div class="text-md-end text-muted-light small">
+                    <i class="fas fa-info-circle"></i> Free delivery on orders over ₱900
+                </div>
+            </div>
+        </div>
+
+        {% include 'partials/category_tabs.html' %}
+    </div>
+</div>
+
+<div class="menu-content">
+    <div class="container">
+        {% if items %}
+        <div class="food-grid">
+            {% for item in items %}
+            <div class="food-card-wrapper">
+                <div class="food-card">
+                    <div class="food-image-container">
+                        <img src="{{ item.get('image') | food_image }}" class="food-image" alt="{{ item['name'] }}">
+                        {% if item.get('category') %}
+                        <span class="food-category-badge">{{ item.get('category') }}</span>
+                        {% endif %}
+                        {% if item.get('is_vegetarian') == 'true' %}
+                        <span class="food-vegetarian-badge"><i class="fas fa-leaf"></i> Vegetarian</span>
+                        {% endif %}
+                    </div>
+                    <div class="food-card-content">
+                        <h3 class="food-name">{{ item['name'] }}</h3>
+                        <p class="food-description">{{ item['description'][:85] }}</p>
+                        <div class="food-footer">
+                            <div class="food-price">
+                                <span class="currency">₱</span>
+                                <span class="amount">{{ "%.2f" | format(item['price']|float) }}</span>
+                            </div>
+                            <form method="POST" action="/add-to-cart" class="add-to-cart-form">
+                                <input type="hidden" name="id" value="{{ item['id'] }}">
+                                <input type="hidden" name="name" value="{{ item['name'] }}">
+                                <input type="hidden" name="price" value="{{ item['price'] }}">
+                                <input type="hidden" name="image" value="{{ item.get('image', '') }}">
+                                <div class="qty-input-group">
+                                    <button type="button" class="qty-btn minus" onclick="changeQty(this, -1)">−</button>
+                                    <input type="number" name="qty" class="qty-input" value="1" min="1" max="10">
+                                    <button type="button" class="qty-btn plus" onclick="changeQty(this, 1)">+</button>
+                                </div>
+                                <button type="submit" class="btn-add-to-cart" title="Add to cart">
+                                    <i class="fas fa-shopping-cart"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="no-results-card">
+            <i class="fas fa-search"></i>
+            <h3>No Items Found</h3>
+            <p>We couldn't find any items matching your search. Try a different term or browse all categories.</p>
+            <a href="{{ url_for('menu') }}" class="btn btn-primary mt-3">
+                <i class="fas fa-redo"></i> Browse All Menu
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function changeQty(button, delta) {
+    const group = button.closest('.qty-input-group');
+    const input = group.querySelector('.qty-input');
+    const next = Math.min(10, Math.max(1, parseInt(input.value || 1, 10) + delta));
+    input.value = next;
+}
+</script>
+{% endblock %}

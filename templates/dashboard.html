@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}My Dashboard - S&amp;R New York Style Pizza{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="section-title">Welcome, {{ session.get('username') }}!</h2>
+        <p class="section-subtitle">Your personal dashboard</p>
+    </div>
+</div>
+
+<div class="row mb-4 g-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Account Information</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Username:</strong> {{ user.get('username') }}</p>
+                <p><strong>User ID:</strong> {{ user.get('id') }}</p>
+                <p class="mb-0"><strong>Account Type:</strong> <span class="badge bg-success">Regular User</span></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <a href="/menu" class="btn btn-primary w-100 mb-2">Browse Menu</a>
+                <a href="/cart" class="btn btn-warning w-100 mb-2">View Cart</a>
+                <a href="/logout" class="btn btn-outline-danger w-100">Logout</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Your Orders</h5>
+            </div>
+            <div class="card-body">
+                {% if orders %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Date</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in orders %}
+                            <tr>
+                                <td>#{{ order.get('id') }}</td>
+                                <td>{{ order.get('date', 'N/A') }}</td>
+                                <td>₱{{ "%.2f" | format(order.get('total', '0')|float) }}</td>
+                                <td>
+                                    {% if order.get('status') == 'pending' %}
+                                        <span class="badge bg-warning">{{ order.get('status') }}</span>
+                                    {% elif order.get('status') == 'completed' %}
+                                        <span class="badge bg-success">{{ order.get('status') }}</span>
+                                    {% elif order.get('status') == 'cancelled' %}
+                                        <span class="badge bg-danger">{{ order.get('status') }}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ order.get('status') }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if order.get('status') == 'pending' %}
+                                    <form method="POST" action="/orders/cancel/{{ order.get('id') }}" style="display:inline;" onsubmit="return confirm('Cancel this order?');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Cancel Order</button>
+                                    </form>
+                                    {% else %}
+                                    <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info" role="alert">
+                    <p class="mb-0">You haven't placed any orders yet. <a href="/menu">Start ordering now!</a></p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

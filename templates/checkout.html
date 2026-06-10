@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Checkout - S&amp;R New York Style Pizza{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h2 class="section-title">Checkout</h2>
+        <p class="section-subtitle">Review your order before placing it</p>
+    </div>
+</div>
+
+<div class="row mt-4 justify-content-center">
+    <div class="col-md-8">
+        {% if cart %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Order Summary</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Price</th>
+                            <th>Qty</th>
+                            <th>Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in cart %}
+                        <tr>
+                            <td>
+                                <div class="cart-item-cell">
+                                    <img src="{{ item.get('image') | food_image }}" class="cart-item-img" alt="{{ item['name'] }}">
+                                    {{ item['name'] }}
+                                </div>
+                            </td>
+                            <td>₱{{ "%.2f" | format(item['price']|float) }}</td>
+                            <td>{{ item['qty'] }}</td>
+                            <td>₱{{ "%.2f" | format((item['price']|float) * (item['qty']|int)) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <hr>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>Order Total:</h5>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <h5 class="price-tag">₱{{ "%.2f" | format(total|float) }}</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Delivery Address</h5>
+            </div>
+            <div class="card-body">
+                <p class="section-subtitle mb-1">Delivery address will be added from your account profile</p>
+                <p class="footer-small mb-0">In a complete system, this would pull from user profile data stored in XML</p>
+            </div>
+        </div>
+
+        <div class="row mt-4 g-3">
+            <div class="col-md-6">
+                <a href="/cart" class="btn btn-outline-light w-100">Back to Cart</a>
+            </div>
+            <div class="col-md-6">
+                <form method="POST" class="w-100">
+                    <button type="submit" class="btn btn-primary w-100">Confirm Order</button>
+                </form>
+            </div>
+        </div>
+        {% else %}
+        <div class="alert alert-warning">
+            Your cart is empty. <a href="/menu">Go back to menu</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

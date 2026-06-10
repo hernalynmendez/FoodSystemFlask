@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Food Item - S&amp;R New York Style Pizza{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h2 class="section-title">Edit Food Item</h2>
+        <p class="section-subtitle">Update item #{{ item.get('id') }}</p>
+    </div>
+</div>
+
+<div class="row justify-content-center mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="mb-3 text-center">
+                        <img src="{{ item.get('image') | food_image }}" class="edit-item-preview" alt="{{ item.get('name') }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Category</label>
+                        <select name="category" class="form-control">
+                            <option value="">Select Category</option>
+                            <option value="Appetizers" {% if item.get('category')=='Appetizers' %}selected{% endif %}>Appetizers</option>
+                            <option value="Beverages" {% if item.get('category')=='Beverages' %}selected{% endif %}>Beverages</option>
+                            <option value="Burgers" {% if item.get('category')=='Burgers' %}selected{% endif %}>Burgers</option>
+                            <option value="Desserts" {% if item.get('category')=='Desserts' %}selected{% endif %}>Desserts</option>
+                            <option value="Salads" {% if item.get('category')=='Salads' %}selected{% endif %}>Salads</option>
+                            {% for c in categories %}
+                                <option value="{{ c.get('name') }}" {% if item.get('category')==c.get('name') %}selected{% endif %}>{{ c.get('name') }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Item Name *</label>
+                        <input type="text" class="form-control" id="name" name="name" value="{{ item.get('name') }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="price" class="form-label">Price (₱) *</label>
+                        <input type="number" class="form-control" id="price" name="price" step="0.01" value="{{ item.get('price') }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="4">{{ item.get('description') }}</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="image" class="form-label">Replace Photo</label>
+                        <input type="file" class="form-control" id="image" name="image" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml">
+                        <small class="form-text">Leave empty to keep the current image.</small>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Preparation Time (min)</label>
+                            <input type="number" class="form-control" name="prep_time" value="{{ item.get('prep_time','30') }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Quantity in Stock</label>
+                            <input type="number" class="form-control" name="stock" value="{{ item.get('stock','0') }}">
+                        </div>
+                        <div class="col-md-4 d-flex align-items-center">
+                            <div class="form-check ms-2">
+                                <input class="form-check-input" type="checkbox" name="is_vegetarian" id="is_vegetarian" {% if item.get('is_vegetarian')=='true' %}checked{% endif %}>
+                                <label class="form-check-label" for="is_vegetarian">Vegetarian Item</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">Update Item</button>
+                        <a href="/admin/items" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

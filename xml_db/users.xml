@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<users>
+    <user>
+        <id>1</id>
+        <username>admin</username>
+        <password>admin</password>
+        <is_admin>true</is_admin>
+    </user>
+<user><id>2</id><username>hernalynmendez</username><password>herna123</password><is_admin>false</is_admin></user></users>

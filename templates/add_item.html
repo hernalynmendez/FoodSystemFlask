@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Add Food Item - S&amp;R New York Style Pizza{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h2 class="section-title">Add New Food Item</h2>
+    <p class="section-subtitle">Fill the form below to add a new menu item</p>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="POST" enctype="multipart/form-data">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Category *</label>
+                        <select name="category" class="form-control">
+                            <option value="">Select Category</option>
+                            <option value="Appetizers">Appetizers</option>
+                            <option value="Beverages">Beverages</option>
+                            <option value="Burgers">Burgers</option>
+                            <option value="Desserts">Desserts</option>
+                            <option value="Salads">Salads</option>
+                            {% if categories %}
+                                {% for c in categories %}
+                                    <option value="{{ c.get('name') }}">{{ c.get('name') }}</option>
+                                {% endfor %}
+                            {% endif %}
+                        </select>
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label">Food Name *</label>
+                        <input type="text" class="form-control" name="name" required>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" name="description" rows="3"></textarea>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Price *</label>
+                        <div class="input-group">
+                            <span class="input-group-text">₱</span>
+                            <input type="number" class="form-control" name="price" step="0.01" required>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Preparation Time (min)</label>
+                        <input type="number" class="form-control" name="prep_time" value="30">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Quantity in Stock</label>
+                        <input type="number" class="form-control" name="stock" value="0">
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label">Food Image</label>
+                        <input type="file" class="form-control" name="image" accept="image/*">
+                        <small class="text-muted">Maximum 5MB. Formats: JPG, PNG, GIF</small>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-center">
+                        <div class="form-check ms-2">
+                            <input class="form-check-input" type="checkbox" name="is_vegetarian" id="is_vegetarian">
+                            <label class="form-check-label" for="is_vegetarian">Vegetarian Item</label>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <button class="btn btn-danger">+ Add Food Item</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

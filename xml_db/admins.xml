@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<admins>
+    <admin>
+        <id>1</id>
+        <username>admin</username>
+        <password>admin123</password>
+        <date>2026-01-01 00:00:00</date>
+    </admin>
+</admins>

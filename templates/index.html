@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}Home - S&amp;R New York Style Pizza{% endblock %}
+
+{% block content_wrapper_class %}container-fluid p-0{% endblock %}
+
+{% block hero %}
+<section class="hero-section hero-home text-white py-5" style="background-image: linear-gradient(135deg, rgba(10,10,10,0.6), rgba(10,10,10,0.6)), url('{{ url_for('static', filename='uploads/profiles/homepage.jpg') }}');">
+    <div class="container py-5">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <span class="hero-quote">BIG TASTE, BIT FUN!</span>
+                <h1 class="display-4 fw-bold mb-4">S&amp;R New York Style Pizza</h1>
+                <p class="lead mb-4">A pizza experience with bold New York flavor, fast ordering, and effortless delivery.</p>
+
+                {% if session.get('user_id') %}
+                <a href="/menu" class="btn btn-primary btn-lg me-3">Browse Menu</a>
+                <a href="/dashboard" class="btn btn-outline-light btn-lg">My Orders</a>
+                {% else %}
+                <a href="/register" class="btn btn-primary btn-lg me-3">Register</a>
+                <a href="/login" class="btn btn-outline-light btn-lg">Login</a>
+                {% endif %}
+            </div>
+            <div class="col-md-6 d-none d-md-block"></div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block content %}
+<section class="container py-5">
+    <h2 class="text-center mb-5 section-title">Why Choose Us?</h2>
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card h-100 text-center food-card">
+                <div class="card-body">
+                    <div class="feature-icon mb-3">⚡</div>
+                    <h5 class="card-title">Fast Delivery</h5>
+                    <p class="card-text">Get your food delivered quickly with our efficient delivery service.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 text-center food-card">
+                <div class="card-body">
+                    <div class="feature-icon mb-3">🍽️</div>
+                    <h5 class="card-title">Quality Food</h5>
+                    <p class="card-text">Fresh, delicious food prepared with bold New York-style flavor.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 text-center food-card">
+                <div class="card-body">
+                    <div class="feature-icon mb-3">🔒</div>
+                    <h5 class="card-title">Secure Ordering</h5>
+                    <p class="card-text">Your account and orders are saved securely in our system.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% if session.get('user_id') and not session.get('is_admin') and items %}
+<section class="popular-section py-5">
+    <div class="container">
+        <h2 class="mb-4 section-title">Popular Items</h2>
+        {% include 'partials/category_tabs.html' %}
+        <div class="row g-4 mt-2">
+            {% for item in items %}
+            <div class="col-md-4">
+                <div class="card food-card h-100">
+                    <img src="{{ item.get('image') | food_image }}" class="card-img-top" alt="{{ item['name'] }}">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">{{ item['name'] }}</h5>
+                        <p class="card-text">{{ item['description'][:60] }}...</p>
+                        <div class="mt-auto">
+                            <p class="price-tag mb-3">₱{{ "%.2f" | format(item['price']|float) }}</p>
+                            <form method="POST" action="/add-to-cart" class="d-flex gap-2">
+                                <input type="hidden" name="id" value="{{ item['id'] }}">
+                                <input type="hidden" name="name" value="{{ item['name'] }}">
+                                <input type="hidden" name="price" value="{{ item['price'] }}">
+                                <input type="hidden" name="image" value="{{ item.get('image', '') }}">
+                                <input type="number" name="qty" class="form-control form-control-sm" value="1" min="1" max="10">
+                                <button type="submit" class="btn btn-primary btn-sm">Add</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-4">
+            <a href="/menu" class="btn btn-primary btn-lg">View All Items</a>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<section class="hero-section hero-cta text-white py-5" style="background-image: linear-gradient(135deg, rgba(10,10,10,0.7), rgba(10,10,10,0.7)), url('{{ url_for('static', filename='uploads/profiles/logo3.jpg') }}');">
+    <div class="container text-center">
+        <h2 class="mb-4">Ready to Order?</h2>
+        <p class="lead mb-4">Join thousands of satisfied customers enjoying premium New York-style pizza.</p>
+        {% if not session.get('user_id') %}
+        <a href="/register" class="btn btn-primary btn-lg me-3">Create Account</a>
+        {% else %}
+        <a href="/menu" class="btn btn-primary btn-lg me-3">Order Now</a>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

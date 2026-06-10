@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 700" role="img" aria-label="New York style pizza">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="#3a1818"/>
+      <stop offset="55%" stop-color="#120808"/>
+      <stop offset="100%" stop-color="#050505"/>
+    </radialGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="12" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="900" height="700" fill="url(#bg)"/>
+  <circle cx="450" cy="360" r="250" fill="#e32f2f" opacity="0.12" filter="url(#glow)"/>
+  <circle cx="450" cy="360" r="230" fill="#d4a056"/>
+  <circle cx="450" cy="360" r="212" fill="#e8b86d"/>
+  <circle cx="340" cy="290" r="42" fill="#e32f2f"/>
+  <circle cx="520" cy="300" r="38" fill="#e32f2f"/>
+  <circle cx="420" cy="420" r="40" fill="#e32f2f"/>
+  <circle cx="300" cy="380" r="34" fill="#fff3c4"/>
+  <circle cx="560" cy="380" r="36" fill="#fff3c4"/>
+  <circle cx="450" cy="230" r="32" fill="#fff3c4"/>
+  <path d="M450 110 L680 560 L220 560 Z" fill="#c9892f" opacity="0.28"/>
+  <text x="450" y="640" text-anchor="middle" fill="#ffffff" opacity="0.55" font-family="Inter, sans-serif" font-size="28" letter-spacing="8">NEW YORK STYLE</text>
+</svg>

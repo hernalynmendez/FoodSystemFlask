@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Invoice - Order #{{ order.get('id') }}{% endblock %}
+
+{% block content %}
+<div class="card p-4">
+    <div class="d-flex justify-content-between">
+        <h4>Invoice</h4>
+        <button class="btn btn-sm btn-outline-primary" onclick="window.print()">Print</button>
+    </div>
+    <hr/>
+    <p><strong>Order ID:</strong> {{ order.get('id') }}</p>
+    <p><strong>Date:</strong> {{ order.get('date') }}</p>
+    <p><strong>User ID:</strong> {{ order.get('user_id') }}</p>
+    <p><strong>Payment Status:</strong> {{ order.get('payment_status','pending') }}</p>
+    <hr/>
+    <h5>Items</h5>
+    <table class="table">
+        <thead>
+            <tr><th>Item</th><th>Qty</th><th>Unit</th><th>Subtotal</th></tr>
+        </thead>
+        <tbody>
+            {% for it in items %}
+            <tr>
+                <td>{{ it.get('name') }}</td>
+                <td>{{ it.get('quantity') }}</td>
+                <td>₱{{ "%.2f"|format(it.get('price','0')|float) }}</td>
+                <td>₱{{ "%.2f"|format((it.get('price','0')|float) * (it.get('quantity')|int)) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <hr/>
+    <h4 class="text-end">Total: ₱{{ "%.2f"|format(order.get('total','0')|float) }}</h4>
+</div>
+{% endblock %}

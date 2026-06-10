@@ -1,0 +1,75 @@
+<?xml version='1.0' encoding='utf-8'?>
+<food_items>
+    <item>
+        <id>1</id>
+        <name>Classic Burger</name>
+        <price>49.99</price>
+        <description>Juicy beef patty with lettuce, tomato, and cheese</description>
+        <category>Burgers</category>
+        <is_vegetarian>false</is_vegetarian>
+        <image>uploads/food/classic burger.jpg</image>
+    </item>
+    <item>
+        <id>2</id>
+        <name>Veggie Burger</name>
+        <price>79.99</price>
+        <description>Plant-based patty with fresh vegetables</description>
+        <category>Burgers</category>
+        <is_vegetarian>true</is_vegetarian>
+        <image>uploads/food/veggie burger.jpg</image>
+    </item>
+    <item>
+        <id>3</id>
+        <name>Margherita Pizza</name>
+        <price>249.99</price>
+        <description>Fresh mozzarella, basil, and tomato sauce</description>
+        <category>Pizzas</category>
+        <is_vegetarian>true</is_vegetarian>
+        <image>uploads/food/magherita pizza.jpg</image>
+    </item>
+    <item>
+        <id>4</id>
+        <name>Pepperoni Pizza</name>
+        <price>199.99</price>
+        <description>Classic pepperoni with cheese and sauce</description>
+        <category>Pizzas</category>
+        <is_vegetarian>false</is_vegetarian>
+        <image>uploads/food/Pepperoni Pizza.jpg</image>
+    </item>
+    <item>
+        <id>5</id>
+        <name>Caesar Salad</name>
+        <price>169.99</price>
+        <description>Crisp romaine lettuce with caesar dressing</description>
+        <category>Salads</category>
+        <is_vegetarian>true</is_vegetarian>
+        <image>uploads/food/caesar salad.jpg</image>
+    </item>
+    <item>
+        <id>6</id>
+        <name>Chocolate Cake</name>
+        <price>139.99</price>
+        <description>Decadent chocolate cake with frosting</description>
+        <category>Desserts</category>
+        <is_vegetarian>false</is_vegetarian>
+        <image>uploads/food/chocolate cake.jpg</image>
+    </item>
+    <item>
+        <id>7</id>
+        <name>Soft Drink</name>
+        <price>49.49</price>
+        <description>Refreshing soft beverages</description>
+        <category>Beverages</category>
+        <is_vegetarian>false</is_vegetarian>
+        <image>uploads/food/softdrinks.jpg</image>
+    </item>
+    <item>
+        <id>8</id>
+        <name>Chicken Wings</name>
+        <price>299.99</price>
+        <description>Crispy fried wings with sauce</description>
+        <category>Appetizers</category>
+        <is_vegetarian>false</is_vegetarian>
+        <image>uploads/food/chicken wings.jpg</image>
+    </item>
+</food_items>

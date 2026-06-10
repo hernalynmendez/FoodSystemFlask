@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Users - S&amp;R New York Style Pizza{% endblock %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col-md-8">
+        <h2 class="section-title">Manage Users</h2>
+        <p class="section-subtitle mb-0">View and manage registered accounts</p>
+    </div>
+    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+        <a href="/admin-dashboard" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+</div>
+
+{% if users %}
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>#{{ user.get('id') }}</td>
+                <td><strong>{{ user.get('username') }}</strong></td>
+                <td>
+                    {% if user.get('is_admin') == 'true' %}
+                        <span class="badge bg-danger">Admin</span>
+                    {% else %}
+                        <span class="badge bg-success">User</span>
+                    {% endif %}
+                    {% if user.get('is_disabled') == 'true' %}
+                        <span class="badge bg-warning text-dark ms-2">Disabled</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if user.get('id') != '1' %}
+                    <form method="POST" action="/admin/users/delete/{{ user.get('id') }}" style="display:inline;" onsubmit="return confirm('Are you sure?');">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                    </form>
+                    <form method="POST" action="/admin/users/disable/{{ user.get('id') }}" style="display:inline;margin-left:6px;">
+                        {% if user.get('is_disabled') == 'true' %}
+                        <button type="submit" class="btn btn-sm btn-outline-success">Enable</button>
+                        {% else %}
+                        <button type="submit" class="btn btn-sm btn-warning">Disable</button>
+                        {% endif %}
+                    </form>
+                    {% else %}
+                    <span class="text-muted">Cannot delete or disable admin</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-info">No users found.</div>
+{% endif %}
+{% endblock %}
