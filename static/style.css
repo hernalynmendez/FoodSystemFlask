@@ -801,6 +801,46 @@ select,
     color: #fff;
 }
 
+/* Error signal for required inputs */
+.error-border {
+    border: 2px solid #dc3545 !important;
+    box-shadow: 0 0 0 0.18rem rgba(220,53,69,0.18) !important;
+    background: rgba(255,255,255,0.02) !important;
+}
+.error-text {
+    color: #ffb3b3;
+    margin-top: 0.35rem;
+    display: block;
+}
+
+/* Confirmation modal: use dark-on-light for readability (text black) */
+#confirmModal .modal-content {
+    color: #000 !important;
+    background: #fff !important;
+}
+#confirmModal .modal-header,
+#confirmModal .modal-body,
+#confirmModal .modal-footer {
+    color: #000 !important;
+}
+#confirmModal .btn-close {
+    filter: none !important;
+}
+
+/* Logout confirmation modal: use dark-on-light for readability (text black) */
+#logoutConfirmModal .modal-content {
+    color: #000 !important;
+    background: #fff !important;
+}
+#logoutConfirmModal .modal-header,
+#logoutConfirmModal .modal-body,
+#logoutConfirmModal .modal-footer {
+    color: #000 !important;
+}
+#logoutConfirmModal .btn-close {
+    filter: none !important;
+}
+
 .category-tab.active {
     background: #e32f2f;
     border-color: #e32f2f;
@@ -1065,5 +1105,228 @@ select,
 @media (max-width: 480px) {
     .food-grid {
         grid-template-columns: 1fr;
+    }
+}
+
+/* Recent Activity Feed Styles */
+.activity-header {
+    background: rgba(255,255,255,0.03);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.activity-subtitle {
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.6);
+    margin: 0;
+    letter-spacing: 0.03em;
+}
+
+.activity-feed {
+    display: block;
+    /* Fixed-size scrollable area to prevent infinite page growth */
+    height: 320px;
+    max-height: 320px;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    padding: 0.25rem 1rem 0.5rem 1rem;
+}
+
+/* Custom scrollbar styling (WebKit browsers) */
+.activity-feed::-webkit-scrollbar {
+    width: 8px;
+}
+.activity-feed::-webkit-scrollbar-track {
+    background: transparent;
+}
+.activity-feed::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.08);
+    border-radius: 8px;
+}
+
+/* Firefox scrollbar */
+.activity-feed {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.08) transparent;
+}
+
+.activity-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1.2rem;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    transition: background 0.2s ease;
+    position: relative;
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-item:hover {
+    background: rgba(255,255,255,0.02);
+}
+
+.activity-icon {
+    font-size: 1.8rem;
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.05);
+    border-radius: 8px;
+}
+
+.activity-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.activity-title {
+    font-weight: 600;
+    color: #fff;
+    font-size: 0.95rem;
+}
+
+.activity-description {
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.68);
+    line-height: 1.4;
+}
+
+.activity-badge {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.35rem 0.65rem;
+    border-radius: 4px;
+    letter-spacing: 0.05em;
+    width: fit-content;
+    margin-top: 0.25rem;
+}
+
+.badge-payment {
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+}
+
+.badge-delivery {
+    background: rgba(59, 130, 246, 0.15);
+    color: #3b82f6;
+}
+
+.badge-order {
+    background: rgba(249, 115, 22, 0.15);
+    color: #f97316;
+}
+
+.badge-user {
+    background: rgba(147, 51, 234, 0.15);
+    color: #9333ea;
+}
+
+.badge-cancelled {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+
+.activity-time {
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.5);
+    position: absolute;
+    top: 1.2rem;
+    right: 1.2rem;
+    white-space: nowrap;
+}
+
+/* Cart count badge in navbar */
+.cart-count-badge {
+    display: inline-block;
+    min-width: 20px;
+    height: 20px;
+    line-height: 18px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: #ef4444;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-align: center;
+    position: absolute;
+    top: 6px;
+    right: -6px;
+}
+
+/* Small toast-style add-to-cart notification */
+.cart-toast {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    background: rgba(17,17,17,0.9);
+    color: #fff;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+    z-index: 1050;
+    display: none;
+}
+
+/* Revenue analytics cart styles */
+.analytics-container {
+    width: 100%;
+}
+.analytics-chart {
+    min-width: 0;
+}
+.analytics-chart canvas {
+    width: 100% !important;
+    height: 340px !important;
+    display: block;
+}
+.analytics-cart {
+    width: 100%;
+    max-width: 100%;
+    background: rgba(255,255,255,0.02);
+    border-radius: 8px;
+    min-height: 80px;
+    max-height: 320px;
+    overflow-y: auto;
+    margin-top: 1rem;
+    border-top: 1px solid rgba(255,255,255,0.04);
+    padding: 1rem;
+}
+.analytics-cart .cart-item {
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    padding-bottom: 0.4rem;
+}
+.analytics-cart .cart-item:last-child {
+    border-bottom: none;
+}
+.analytics-cart .text-muted { color: rgba(255,255,255,0.6); }
+
+/* Scrollbar for cart (WebKit) */
+.analytics-cart::-webkit-scrollbar { width: 8px; }
+.analytics-cart::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 8px; }
+.analytics-cart { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.06) transparent; }
+
+@media (max-width: 992px) {
+    .analytics-container {
+        display: block;
+    }
+    .analytics-chart canvas {
+        height: 240px !important;
+    }
+    .analytics-cart--overlay {
+        position: static;
+        width: 100%;
+        max-width: 100%;
+        border-left: none;
+        border-top: 1px solid rgba(255,255,255,0.04);
+        margin-top: 0.75rem;
+        max-height: 220px;
     }
 }

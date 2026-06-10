@@ -121,4 +121,50 @@ function changeQty(button, delta) {
     input.value = next;
 }
 </script>
+<script>
+// AJAX add-to-cart handling
+document.addEventListener('DOMContentLoaded', function(){
+    document.querySelectorAll('.add-to-cart-form').forEach(form => {
+        form.addEventListener('submit', async function(e){
+            e.preventDefault();
+            const btn = form.querySelector('.btn-add-to-cart');
+            btn.disabled = true;
+            const formData = new FormData(form);
+            try {
+                const res = await fetch('/api/add-to-cart', { method: 'POST', body: formData });
+                const json = await res.json();
+                if (res.ok && json.success) {
+                    // update cart count badge
+                    const countEl = document.getElementById('cartCount');
+                    if (countEl) {
+                        countEl.textContent = json.count;
+                        countEl.style.display = json.count > 0 ? 'inline-block' : 'none';
+                    }
+                    showCartToast(json.message || 'Added to cart');
+                } else {
+                    showCartToast(json.message || 'Failed to add to cart');
+                }
+            } catch (err) {
+                showCartToast('Network error');
+            } finally {
+                btn.disabled = false;
+            }
+        });
+    });
+
+    function showCartToast(msg) {
+        let toast = document.getElementById('cartToast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'cartToast';
+            toast.className = 'cart-toast';
+            document.body.appendChild(toast);
+        }
+        toast.textContent = msg;
+        toast.style.display = 'block';
+        clearTimeout(toast._hideTimeout);
+        toast._hideTimeout = setTimeout(() => { toast.style.display = 'none'; }, 2500);
+    }
+});
+</script>
 {% endblock %}

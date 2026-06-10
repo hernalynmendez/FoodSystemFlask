@@ -1,3 +1,3 @@
 <?xml version='1.0' encoding='utf-8'?>
 <logs>
-</logs>
+<log><id>1</id><admin_id>1</admin_id><action>order_updated</action><details>Order 14 updated by admin</details><date>2026-06-11 02:04:08</date></log></logs>

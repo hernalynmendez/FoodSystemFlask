@@ -1,6 +1,7 @@
 import xml.etree.ElementTree as ET
 import os
 from config import XML_PATH
+from datetime import datetime
 
 def load_xml(filename='users.xml'):
     """Load XML file from the database directory."""
@@ -311,7 +312,9 @@ def delete_food_item(item_id):
         return {'success': False, 'message': str(e)}
 
 # ORDER OPERATIONS
-def create_order(user_id, items, total):
+def create_order(user_id, items, total, payment_method=None,
+                 delivery_address=None, city=None, state=None,
+                 postal_code=None, special_instructions=None):
     """Create a new order with multiple items."""
     try:
         tree = load_xml('orders.xml')
@@ -324,6 +327,15 @@ def create_order(user_id, items, total):
         ET.SubElement(order, 'user_id').text = str(user_id)
         ET.SubElement(order, 'total').text = str(total)
         ET.SubElement(order, 'status').text = 'pending'
+        # store payment method and initialize payment status
+        ET.SubElement(order, 'payment_method').text = payment_method or 'cod'
+        ET.SubElement(order, 'payment_status').text = 'pending'
+        # delivery info
+        ET.SubElement(order, 'delivery_address').text = delivery_address or ''
+        ET.SubElement(order, 'city').text = city or ''
+        ET.SubElement(order, 'state').text = state or ''
+        ET.SubElement(order, 'postal_code').text = postal_code or ''
+        ET.SubElement(order, 'special_instructions').text = special_instructions or ''
         ET.SubElement(order, 'date').text = __import__('datetime').datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         
         items_elem = ET.SubElement(order, 'items')
@@ -629,6 +641,61 @@ def get_monthly_sales():
         return result
     except Exception as e:
         print(f'Error computing monthly sales: {e}')
+        return []
+
+
+def get_weekly_sales():
+    """Return weekly sales aggregated from orders.xml (ISO year-week)."""
+    try:
+        tree = load_xml('orders.xml')
+        root = tree.getroot()
+        sales = {}
+        for order in root.findall('order'):
+            status = (order.find('status').text or '').lower() if order.find('status') is not None else ''
+            if status not in ('completed', 'delivered'):
+                continue
+            date_text = order.find('date').text if order.find('date') is not None else ''
+            if not date_text:
+                continue
+            try:
+                dt = datetime.strptime(date_text, '%Y-%m-%d %H:%M:%S')
+            except Exception:
+                # fallback: try parse date-only or skip
+                try:
+                    dt = datetime.strptime(date_text[:10], '%Y-%m-%d')
+                except Exception:
+                    continue
+            year, week, _ = dt.isocalendar()
+            key = f"{year}-W{week:02d}"
+            total = float(order.find('total').text or 0)
+            sales[key] = sales.get(key, 0) + total
+        result = [{'week': k, 'total': sales[k]} for k in sorted(sales.keys())]
+        return result
+    except Exception as e:
+        print(f'Error computing weekly sales: {e}')
+        return []
+
+
+def get_daily_sales():
+    """Return daily sales aggregated from orders.xml (YYYY-MM-DD)."""
+    try:
+        tree = load_xml('orders.xml')
+        root = tree.getroot()
+        sales = {}
+        for order in root.findall('order'):
+            status = (order.find('status').text or '').lower() if order.find('status') is not None else ''
+            if status not in ('completed', 'delivered'):
+                continue
+            date_text = order.find('date').text if order.find('date') is not None else ''
+            if not date_text:
+                continue
+            day = date_text[:10]
+            total = float(order.find('total').text or 0)
+            sales[day] = sales.get(day, 0) + total
+        result = [{'day': d, 'total': sales[d]} for d in sorted(sales.keys())]
+        return result
+    except Exception as e:
+        print(f'Error computing daily sales: {e}')
         return []
 
 

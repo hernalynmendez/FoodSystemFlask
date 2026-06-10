@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Order Confirmation - S&R New York Style Pizza{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h2 class="section-title">Order Confirmation</h2>
+        <p class="section-subtitle">Thank you — your order has been received.</p>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5>Order #{{ order.get('id') }}</h5>
+                <p><strong>Total:</strong> ₱{{ "%.2f"|format(order.get('total','0')|float) }}</p>
+                <p><strong>Payment Method:</strong> {{ order.get('payment_method','cod')|upper }}</p>
+                <p><strong>Payment Status:</strong> {{ order.get('payment_status','pending')|capitalize }}</p>
+                <p><strong>Order Status:</strong> {{ order.get('status','pending')|capitalize }}</p>
+                <p><strong>Date:</strong> {{ order.get('date') }}</p>
+                <hr>
+                <h6>Delivery Information</h6>
+                <p><strong>Address:</strong> {{ order.get('delivery_address','') }}</p>
+                <p><strong>City:</strong> {{ order.get('city','') }} <strong>State:</strong> {{ order.get('state','') }}</p>
+                <p><strong>Postal Code:</strong> {{ order.get('postal_code','') }}</p>
+                <p><strong>Special Instructions:</strong> {{ order.get('special_instructions','') }}</p>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5>Items</h5>
+                <ul class="list-unstyled">
+                    {% for it in items %}
+                    <li>{{ it.get('name') }} x {{ it.get('quantity') }} — ₱{{ "%.2f"|format(it.get('price','0')|float) }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <a href="/orders" class="btn btn-outline-light">View My Orders</a>
+    </div>
+</div>
+{% endblock %}

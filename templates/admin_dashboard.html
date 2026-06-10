@@ -74,7 +74,35 @@
                         <button class="btn btn-sm btn-outline-light active" id="monthlyBtn">Monthly</button>
                     </div>
                 </div>
-                <canvas id="salesChart" height="180"></canvas>
+                <div class="analytics-container">
+                    <div class="analytics-chart">
+                        <canvas id="salesChart" height="340"></canvas>
+                    </div>
+                    <aside class="analytics-cart p-3">
+                            <h6 class="text-white mb-2">Cart</h6>
+                            <ul class="list-unstyled mb-0 analytics-cart-items">
+                                {% if admin_cart %}
+                                {% for it in admin_cart %}
+                                <li class="cart-item d-flex justify-content-between align-items-center mb-2">
+                                    <div>
+                                        <strong class="text-white">{{ it.name }}</strong>
+                                        <div class="small text-muted">Qty: {{ it.qty or it.quantity }}</div>
+                                    </div>
+                                        <!-- embed data for JS to read (avoid inline Jinja inside script) -->
+                                        <div id="analyticsData" data-monthly='{{ monthly_sales|tojson|safe }}' style="display:none"></div>
+                                    <div class="text-white">₱{{ "%.2f"|format((it.price|float) if it.price is defined else 0) }}</div>
+                                </li>
+                                {% endfor %}
+                            {% else %}
+                                <li class="text-muted">Cart is empty.</li>
+                            {% endif %}
+                        </ul>
+                        <div class="mt-3 d-grid gap-2">
+                            <a class="btn btn-sm btn-danger" href="/admin/cart/checkout">Checkout</a>
+                            <a class="btn btn-sm btn-outline-light" href="/admin/cart">View Cart</a>
+                        </div>
+                    </aside>
+                </div>
             </div>
         </div>
         <div class="col-lg-4">
@@ -138,16 +166,46 @@
             </div>
         </div>
         <div class="col-lg-4">
-            <div class="glass-card p-3 mb-3">
-                <h5 class="text-white">Recent Activity</h5>
-                <ul class="list-unstyled mt-3 small text-muted">
-                    {% for log in recent_logs[:8] %}
-                    <li class="mb-2">{{ log.get('date') }} — {{ log.get('action') }} — {{ log.get('details') }}</li>
+            <div class="glass-card p-0 mb-3">
+                <div class="activity-header p-3">
+                    <h5 class="text-white mb-1">
+                        <i class="fas fa-history me-2"></i>Recent Business Activity
+                    </h5>
+                    <p class="activity-subtitle">Latest orders, payments, deliveries & registrations</p>
+                </div>
+                <div class="activity-feed">
+                    {% for activity in recent_activity %}
+                    <div class="activity-item">
+                        <div class="activity-icon">{{ activity.icon }}</div>
+                        <div class="activity-content">
+                            <div class="activity-title">{{ activity.title }}</div>
+                            <div class="activity-description">{{ activity.description }}</div>
+                            {% if activity.type == 'payment' %}
+                            <span class="activity-badge badge-payment">PAYMENT</span>
+                            {% elif activity.type == 'delivery' %}
+                            <span class="activity-badge badge-delivery">DELIVERED</span>
+                            {% elif activity.type == 'order' %}
+                            <span class="activity-badge badge-order">NEW ORDER</span>
+                            {% elif activity.type == 'user' %}
+                            <span class="activity-badge badge-user">NEW CUSTOMER</span>
+                            {% elif activity.type == 'cancelled' %}
+                            <span class="activity-badge badge-cancelled">CANCELLED</span>
+                            {% endif %}
+                        </div>
+                        <div class="activity-time">
+                            {% if activity.timestamp %}
+                                {% set time_part = activity.timestamp.split(' ')[1] if ' ' in activity.timestamp else 'N/A' %}
+                                {{ time_part }}
+                            {% endif %}
+                        </div>
+                    </div>
                     {% endfor %}
-                    {% if not recent_logs %}
-                    <li>No activity yet.</li>
+                    {% if not recent_activity %}
+                    <div class="text-muted text-center py-4">
+                        <p>No recent activity yet.</p>
+                    </div>
                     {% endif %}
-                </ul>
+                </div>
             </div>
             <div class="glass-card p-3">
                 <h5 class="text-white">Quick Actions</h5>
@@ -164,28 +222,110 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    const monthlySales = {{ monthly_sales|tojson }};
+    const monthlySales = JSON.parse(document.getElementById('analyticsData')?.dataset?.monthly || '[]');
     const labels = monthlySales.map(m => m.month);
-    const data = monthlySales.map(m => m.total);
+    // Robustly parse numeric values for the chart (strip currency symbols and support 'K')
+    function parseValue(v) {
+        if (v === null || v === undefined) return 0;
+        if (typeof v === 'number') return v;
+        let s = String(v).trim();
+        // Handle shorthand like '61K' or '₱61K'
+        const kMatch = s.match(/(-?[0-9,.]+)\s*[kK]\b/);
+        if (kMatch) {
+            const num = Number(kMatch[1].replace(/,/g, '')) || 0;
+            return num * 1000;
+        }
+        // Remove all non-numeric, non-dot, non-minus characters
+        s = s.replace(/[^0-9.-]+/g, '');
+        return Number(s) || 0;
+    }
+
+    const data = monthlySales.map(m => parseValue(m.total));
 
     const ctx = document.getElementById('salesChart').getContext('2d');
     const salesChart = new Chart(ctx, {
-        type: 'line',
+        type: 'bar',
         data: {
             labels: labels,
             datasets: [{
                 label: 'Sales',
                 data: data,
-                borderColor: '#f97316',
-                backgroundColor: 'rgba(249,115,22,0.1)',
-                fill: true,
-                tension: 0.3
+                backgroundColor: 'rgba(239,68,68,0.9)',
+                borderColor: 'rgba(239,68,68,1)',
+                borderWidth: 1,
+                maxBarThickness: 48,
+                borderRadius: 6
             }]
         },
         options: {
             plugins: {legend:{display:false}},
-            scales: {x:{grid:{display:false}}, y:{grid:{color:'rgba(255,255,255,0.03)'}}}
+            scales: {
+                x: {grid:{display:false}, ticks:{maxRotation:0,minRotation:0}},
+                y: {grid:{color:'rgba(255,255,255,0.03)'}, beginAtZero: true}
+            },
+            maintainAspectRatio: false,
+            responsive: true
         }
     });
+
+    // Utility to update chart with new labels/data
+    function updateChart(labels, dataArr) {
+        salesChart.data.labels = labels;
+        salesChart.data.datasets[0].data = dataArr;
+        salesChart.update();
+    }
+
+    async function loadSales(range) {
+        // range: 'daily' | 'weekly' | 'monthly'
+        // Use the embedded monthlySales for 'monthly' (already available)
+        if (range === 'monthly') {
+            const labels = monthlySales.map(m => m.month);
+            const dataArr = monthlySales.map(m => parseValue(m.total));
+            updateChart(labels, dataArr);
+            return;
+        }
+
+        const url = `/admin/api/${range}-sales`;
+        try {
+            const res = await fetch(url);
+            if (!res.ok) throw new Error('Network error');
+            const json = await res.json();
+            let labels = [];
+            let dataArr = [];
+            if (range === 'weekly') {
+                labels = json.map(s => s.week);
+                dataArr = json.map(s => parseValue(s.total));
+            } else if (range === 'daily') {
+                labels = json.map(s => s.day);
+                dataArr = json.map(s => parseValue(s.total));
+            }
+            updateChart(labels, dataArr);
+        } catch (e) {
+            console.error('Failed to load sales:', e);
+        }
+    }
+
+    // Wire up buttons
+    document.getElementById('dailyBtn').addEventListener('click', function(){
+        loadSales('daily');
+        this.classList.add('active');
+        document.getElementById('weeklyBtn').classList.remove('active');
+        document.getElementById('monthlyBtn').classList.remove('active');
+    });
+    document.getElementById('weeklyBtn').addEventListener('click', function(){
+        loadSales('weekly');
+        this.classList.add('active');
+        document.getElementById('dailyBtn').classList.remove('active');
+        document.getElementById('monthlyBtn').classList.remove('active');
+    });
+    document.getElementById('monthlyBtn').addEventListener('click', function(){
+        loadSales('monthly');
+        this.classList.add('active');
+        document.getElementById('dailyBtn').classList.remove('active');
+        document.getElementById('weeklyBtn').classList.remove('active');
+    });
+
+    // Initialize with monthly data
+    loadSales('monthly');
 </script>
 {% endblock %}

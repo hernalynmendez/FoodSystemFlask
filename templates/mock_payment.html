@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Mock Payment - S&R New York Style Pizza{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h2 class="section-title">Mock Payment</h2>
+        <p class="section-subtitle">This simulates an online payment gateway.</p>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5>Order #{{ order.get('id') }}</h5>
+                <p>Total: ₱{{ "%.2f"|format(order.get('total','0')|float) }}</p>
+                <p>Payment Method: {{ order.get('payment_method','online') }}</p>
+            </div>
+        </div>
+
+        <form method="POST" action="/mock-payment/{{ order.get('id') }}/pay">
+            <div class="mb-3">
+                <label class="form-label">Card Number</label>
+                <input class="form-control" placeholder="4242 4242 4242 4242" required>
+            </div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Expiry</label>
+                    <input class="form-control" placeholder="MM/YY" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">CVC</label>
+                    <input class="form-control" placeholder="123" required>
+                </div>
+            </div>
+            <div class="mt-4">
+                <button class="btn btn-success" type="submit">Pay Now</button>
+                <a class="btn btn-outline-light" href="/checkout">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

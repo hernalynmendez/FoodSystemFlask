@@ -1,5 +1,6 @@
 from functools import wraps
 import os
+from datetime import datetime
 
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from werkzeug.utils import secure_filename
@@ -119,7 +120,7 @@ def login():
 
                 if session["is_admin"]:
                     return redirect(url_for("admin_dashboard"))
-                return redirect(url_for("dashboard"))
+                return redirect(url_for("profile"))
 
         # Then check admin accounts stored in admins.xml
         admins = xml.get_all_admins()
@@ -230,6 +231,32 @@ def add_to_cart_route():
     return redirect(url_for("menu"))
 
 
+@app.route('/api/add-to-cart', methods=['POST'])
+@login_required
+def api_add_to_cart():
+    if session.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Admins cannot use the shopping cart.'}), 403
+
+    item = {
+        'id': request.form.get('id') or request.json and request.json.get('id'),
+        'name': request.form.get('name') or request.json and request.json.get('name'),
+        'price': request.form.get('price') or request.json and request.json.get('price'),
+        'qty': request.form.get('qty') or (request.json and request.json.get('qty')) or 1,
+        'image': request.form.get('image') or request.json and request.json.get('image') or DEFAULT_FOOD_IMAGE,
+    }
+
+    if not item['id'] or not item['name']:
+        return jsonify({'success': False, 'message': 'Invalid item.'}), 400
+
+    food_item = xml.get_food_item_by_id(item['id'])
+    if food_item and food_item.get('image'):
+        item['image'] = food_item.get('image')
+
+    cart_helper.add_to_cart(session, item)
+    count = len(cart_helper.get_cart(session))
+    return jsonify({'success': True, 'message': f"Added {item['name']} to cart.", 'count': count})
+
+
 @app.route("/cart")
 @login_required
 def cart():
@@ -271,14 +298,103 @@ def checkout():
         return redirect(url_for("menu"))
 
     if request.method == "POST":
-        result = xml.create_order(session["user_id"], cart_items, total)
+        # collect delivery fields and payment method
+        payment_method = request.form.get('payment_method') or 'cod'
+        delivery_address = (request.form.get('delivery_address') or '').strip()
+        city = (request.form.get('city') or '').strip()
+        state = (request.form.get('state') or '').strip()
+        postal_code = (request.form.get('postal_code') or '').strip()
+        special_instructions = (request.form.get('special_instructions') or '').strip()
+
+        # server-side validation for required fields
+        if not delivery_address or not city:
+            flash('Delivery address and city are required.', 'danger')
+            return render_template('checkout.html', cart=cart_items, total=total)
+
+        # postal code must be digits only if provided
+        if postal_code and not postal_code.isdigit():
+            flash('Postal code must contain digits only.', 'danger')
+            return render_template('checkout.html', cart=cart_items, total=total)
+
+        result = xml.create_order(
+            session["user_id"], cart_items, total,
+            payment_method=payment_method,
+            delivery_address=delivery_address,
+            city=city,
+            state=state,
+            postal_code=postal_code,
+            special_instructions=special_instructions
+        )
         if result["success"]:
+            order_id = result.get('id')
+            # If online payment, redirect to mock payment page
+            if payment_method == 'online':
+                return redirect(url_for('mock_payment', order_id=order_id))
+            # cash on delivery: finalize order and clear cart
             cart_helper.clear_cart(session)
             flash("Order placed successfully!", "success")
-            return redirect(url_for("dashboard"))
+            return redirect(url_for("order_confirmation", order_id=order_id))
         flash(result["message"], "danger")
 
     return render_template("checkout.html", cart=cart_items, total=total)
+
+
+
+@app.route('/mock-payment/<order_id>', methods=['GET'])
+@login_required
+def mock_payment(order_id):
+    # Show a mock payment page for the given order
+    order = xml.get_by_id('orders.xml', 'order', order_id)
+    if not order or order.get('user_id') != str(session.get('user_id')):
+        flash('Order not found or access denied.', 'danger')
+        return redirect(url_for('menu'))
+    return render_template('mock_payment.html', order=order)
+
+
+@app.route('/mock-payment/<order_id>/pay', methods=['POST'])
+@login_required
+def mock_payment_pay(order_id):
+    # Simulate payment success: mark payment_status as paid
+    order = xml.get_by_id('orders.xml', 'order', order_id)
+    if not order or order.get('user_id') != str(session.get('user_id')):
+        flash('Order not found or access denied.', 'danger')
+        return redirect(url_for('menu'))
+    # Update payment_status to paid
+    result = xml.update_order(order_id, payment_status='paid')
+    if result.get('success'):
+        # Optionally mark order as completed
+        xml.update_order(order_id, status='completed')
+        # Clear cart from session
+        cart_helper.clear_cart(session)
+        flash('Payment successful. Order completed.', 'success')
+        return redirect(url_for('order_confirmation', order_id=order_id))
+    flash('Payment failed.', 'danger')
+    return redirect(url_for('mock_payment', order_id=order_id))
+
+
+@app.route('/order/confirmation/<order_id>')
+@login_required
+def order_confirmation(order_id):
+    order = xml.get_by_id('orders.xml', 'order', order_id)
+    if not order or order.get('user_id') != str(session.get('user_id')):
+        flash('Order not found or access denied.', 'danger')
+        return redirect(url_for('menu'))
+    # load items for display
+    tree = xml.load_xml('orders.xml')
+    root = tree.getroot()
+    items = []
+    for o in root.findall('order'):
+        id_elem = o.find('id')
+        if id_elem is not None and id_elem.text == str(order_id):
+            items_elem = o.find('items')
+            if items_elem is not None:
+                for it in items_elem.findall('item'):
+                    itm = {}
+                    for child in it:
+                        itm[child.tag] = child.text
+                    items.append(itm)
+            break
+    return render_template('order_confirmation.html', order=order, items=items)
 
 
 @app.route("/orders")
@@ -323,8 +439,79 @@ def admin_dashboard():
     except Exception:
         recent_orders = orders[:6]
 
-    # recent activity logs
-    recent_logs = xml.get_all('logs.xml', 'log')
+    # generate recent activity from orders and users
+    recent_activity = []
+    
+    # Add recent orders as activities
+    try:
+        all_orders_sorted = sorted(orders, key=lambda o: o.get('date',''), reverse=True)[:15]
+        for order in all_orders_sorted:
+            status = order.get('status', 'pending').lower()
+            order_id = order.get('id')
+            total = float(order.get('total', 0))
+            
+            if status == 'delivered':
+                recent_activity.append({
+                    'type': 'delivery',
+                    'icon': '🚚','title': f"Order Delivered",
+                    'description': f"Order #{order_id} delivered successfully",
+                    'timestamp': order.get('date', '')
+                })
+            elif status == 'completed':
+                recent_activity.append({
+                    'type': 'payment',
+                    'icon': '💰','title': 'Payment Received',
+                    'description': f"Order #{order_id} - ₱{total:.2f}",
+                    'timestamp': order.get('date', '')
+                })
+            elif status == 'cancelled':
+                recent_activity.append({
+                    'type': 'cancelled',
+                    'icon': '❌',
+                    'title': 'Order Cancelled',
+                    'description': f"Order #{order_id} cancelled",
+                    'timestamp': order.get('date', '')
+                })
+            elif status in ['pending', 'confirmed']:
+                items_in_order = order.get('items', '').split(';') if order.get('items') else []
+                item_preview = items_in_order[0] if items_in_order else 'Pizza'
+                recent_activity.append({
+                    'type': 'order',
+                    'icon': '🍕',
+                    'title': f'New Order #{order_id}',
+                    'description': f"{item_preview}",
+                    'timestamp': order.get('date', '')
+                })
+    except Exception as e:
+        print(f"Error processing orders for activity: {e}")
+    
+    # Add recent users as activities
+    try:
+        all_users_sorted = sorted(users, key=lambda u: u.get('date_created',''), reverse=True)[:10]
+        for user in all_users_sorted:
+            recent_activity.append({
+                'type': 'user',
+                'icon': '👤',
+                'title': 'New Customer Registered',
+                'description': user.get('username', 'User'),
+                'timestamp': user.get('date_created', '')
+            })
+    except Exception as e:
+        print(f"Error processing users for activity: {e}")
+    
+    # Sort all activities by timestamp (descending) and limit to 8
+    try:
+        recent_activity = sorted(recent_activity, 
+                               key=lambda x: datetime.strptime(x['timestamp'], '%Y-%m-%d %H:%M:%S') if x['timestamp'] else datetime.min,
+                               reverse=True)[:8]
+    except Exception:
+        recent_activity = recent_activity[:8]
+
+    # Provide admin cart (use session cart if available)
+    try:
+        admin_cart = cart_helper.get_cart(session)
+    except Exception:
+        admin_cart = []
 
     return render_template(
         "admin_dashboard.html",
@@ -334,7 +521,8 @@ def admin_dashboard():
         monthly_sales=monthly_sales,
         top_products=top_products,
         recent_orders=recent_orders,
-        recent_logs=recent_logs,
+        recent_activity=recent_activity,
+        admin_cart=admin_cart,
     )
 
 
@@ -582,6 +770,20 @@ def admin_respond_cancellation(order_id):
 def admin_api_monthly_sales():
     data = xml.get_monthly_sales()
     return (jsonify(data))
+
+
+@app.route('/admin/api/weekly-sales')
+@admin_required
+def admin_api_weekly_sales():
+    data = xml.get_weekly_sales()
+    return jsonify(data)
+
+
+@app.route('/admin/api/daily-sales')
+@admin_required
+def admin_api_daily_sales():
+    data = xml.get_daily_sales()
+    return jsonify(data)
 
 
 @app.route('/admin/api/top-products')

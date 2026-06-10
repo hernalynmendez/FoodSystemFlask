@@ -55,26 +55,63 @@
             </div>
         </div>
 
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="mb-0">Delivery Address</h5>
+        <form method="POST" class="w-100">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Delivery Address</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Delivery Address *</label>
+                        <textarea name="delivery_address" id="delivery_address" class="form-control" required>{{ request.form.get('delivery_address','') }}</textarea>
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <label class="form-label">City *</label>
+                            <input type="text" name="city" id="city" class="form-control" value="{{ request.form.get('city','') }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">State</label>
+                            <input type="text" name="state" id="state" class="form-control" value="{{ request.form.get('state','') }}">
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <label class="form-label">Postal Code</label>
+                        <input type="text" inputmode="numeric" pattern="\d*" name="postal_code" id="postal_code" class="form-control" value="{{ request.form.get('postal_code','') }}" placeholder="Digits only">
+                    </div>
+                </div>
             </div>
-            <div class="card-body">
-                <p class="section-subtitle mb-1">Delivery address will be added from your account profile</p>
-                <p class="footer-small mb-0">In a complete system, this would pull from user profile data stored in XML</p>
-            </div>
-        </div>
 
-        <div class="row mt-4 g-3">
-            <div class="col-md-6">
-                <a href="/cart" class="btn btn-outline-light w-100">Back to Cart</a>
+            <div class="row mt-4 g-3">
+                <div class="col-md-6">
+                    <a href="/cart" class="btn btn-outline-light w-100">Back to Cart</a>
+                </div>
+                <div class="col-md-6">
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h6>Payment Method</h6>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="payment_method" id="pm_cod" value="cod" {% if request.form.get('payment_method','cod')=='cod' %}checked{% endif %}>
+                                <label class="form-check-label" for="pm_cod">Cash on Delivery</label>
+                                <div class="small text-muted">Pay when your order arrives</div>
+                            </div>
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="radio" name="payment_method" id="pm_online" value="online" {% if request.form.get('payment_method')=='online' %}checked{% endif %}>
+                                <label class="form-check-label" for="pm_online">Online Payment</label>
+                                <div class="small text-muted">Credit/Debit card or digital wallet (simulated)</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <label class="form-label">Special Instructions</label>
+                            <textarea name="special_instructions" class="form-control" placeholder="Any special requests for your order?">{{ request.form.get('special_instructions','') }}</textarea>
+                        </div>
+                    </div>
+                    <button type="submit" id="confirmOrderBtn" class="btn btn-primary w-100">Confirm Order</button>
+                </div>
             </div>
-            <div class="col-md-6">
-                <form method="POST" class="w-100">
-                    <button type="submit" class="btn btn-primary w-100">Confirm Order</button>
-                </form>
-            </div>
-        </div>
+        </form>
         {% else %}
         <div class="alert alert-warning">
             Your cart is empty. <a href="/menu">Go back to menu</a>
@@ -82,4 +119,105 @@
         {% endif %}
     </div>
 </div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Your Order</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Please confirm your order and payment method.</p>
+                <p><strong>Total:</strong> ₱{{ "%.2f" | format(total|float) }}</p>
+                <p><strong>Payment Method:</strong> <span id="confirmPaymentMethod">Cash on Delivery</span></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="modalConfirmBtn" class="btn btn-primary">Proceed</button>
+            </div>
+        </div>
+    </div>
+ </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+    const form = document.querySelector('form[method="POST"]');
+    const confirmBtn = document.getElementById('confirmOrderBtn');
+    const modalEl = document.getElementById('confirmModal');
+    const modal = new bootstrap.Modal(modalEl);
+    const modalConfirmBtn = document.getElementById('modalConfirmBtn');
+    const pmCod = document.getElementById('pm_cod');
+    const pmOnline = document.getElementById('pm_online');
+    const confirmPaymentMethod = document.getElementById('confirmPaymentMethod');
+    const deliveryAddress = document.getElementById('delivery_address');
+    const cityInput = document.getElementById('city');
+    const postalCodeInput = document.getElementById('postal_code');
+
+    function getSelectedPayment() {
+        return pmOnline && pmOnline.checked ? 'Online Payment' : 'Cash on Delivery';
+    }
+
+    function clearFieldError(el){
+        if(!el) return;
+        el.classList.remove('error-border');
+        const next = el.nextElementSibling;
+        if(next && next.classList && next.classList.contains('error-text')) next.remove();
+        el.removeAttribute('aria-invalid');
+    }
+
+    function setFieldError(el, message){
+        if(!el) return;
+        el.classList.add('error-border');
+        el.setAttribute('aria-invalid','true');
+        const next = el.nextElementSibling;
+        if(!(next && next.classList && next.classList.contains('error-text'))){
+            const span = document.createElement('small');
+            span.className = 'error-text';
+            span.textContent = message || 'This field is required.';
+            el.after(span);
+        }
+    }
+
+    [deliveryAddress, cityInput, postalCodeInput].forEach(el => {
+        if(el) el.addEventListener('input', () => clearFieldError(el));
+    });
+
+    confirmBtn.addEventListener('click', function(e){
+        e.preventDefault();
+        // clear previous errors
+        clearFieldError(deliveryAddress);
+        clearFieldError(cityInput);
+        let firstInvalid = null;
+        if(!deliveryAddress || !deliveryAddress.value || !deliveryAddress.value.trim()){
+            setFieldError(deliveryAddress, 'Delivery address is required.');
+            firstInvalid = firstInvalid || deliveryAddress;
+        }
+        if(!cityInput || !cityInput.value || !cityInput.value.trim()){
+            setFieldError(cityInput, 'City is required.');
+            firstInvalid = firstInvalid || cityInput;
+        }
+        // postal code numeric check (if provided)
+        if(postalCodeInput && postalCodeInput.value && !/^[0-9]+$/.test(postalCodeInput.value.trim())){
+            setFieldError(postalCodeInput, 'Postal code must contain digits only.');
+            firstInvalid = firstInvalid || postalCodeInput;
+        }
+
+        if(firstInvalid){
+            firstInvalid.focus();
+            firstInvalid.scrollIntoView({behavior: 'smooth', block: 'center'});
+            return;
+        }
+
+        // everything ok, show modal
+        confirmPaymentMethod.textContent = getSelectedPayment();
+        modal.show();
+    });
+
+    modalConfirmBtn.addEventListener('click', function(){
+        form.submit();
+    });
+});
+</script>
 {% endblock %}
